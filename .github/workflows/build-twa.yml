@@ -95,33 +95,33 @@ jobs:
           echo "SHA256_FINGERPRINT=$SHA256_FP" >> $GITHUB_ENV
 
           # 3. Generate Digital Asset Links file (assetlinks.json)
-          mkdir -p public/.well-known dist/.well-known
-          cat << ASSET_EOF > public/.well-known/assetlinks.json
-[
-  {
-    "relation": ["delegate_permission/common.handle_all_urls"],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "io.github.payalktr80_web.mobile_harness",
-      "sha256_cert_fingerprints": [
-        "$SHA256_FP"
-      ]
-    }
-  }
-]
-ASSET_EOF
-          cp public/.well-known/assetlinks.json dist/.well-known/assetlinks.json
-          cp public/.well-known/assetlinks.json ./assetlinks.json
+          node -e '
+            const fs = require("fs");
+            const sha256 = process.env.SHA256_FINGERPRINT;
+            const content = [{
+              relation: ["delegate_permission/common.handle_all_urls"],
+              target: {
+                namespace: "android_app",
+                package_name: "io.github.payalktr80_web.mobile_harness",
+                sha256_cert_fingerprints: [sha256]
+              }
+            }];
+            fs.mkdirSync("public/.well-known", { recursive: true });
+            fs.mkdirSync("dist/.well-known", { recursive: true });
+            fs.writeFileSync("public/.well-known/assetlinks.json", JSON.stringify(content, null, 2));
+            fs.writeFileSync("dist/.well-known/assetlinks.json", JSON.stringify(content, null, 2));
+            fs.writeFileSync("assetlinks.json", JSON.stringify(content, null, 2));
+          '
 
           # 4. Inject fingerprint into twa-manifest.json
-          node -e "
-            const fs = require('fs');
-            const manifest = JSON.parse(fs.readFileSync('twa-manifest.json', 'utf8'));
-            manifest.fingerprints = [{ value: '$SHA256_FP' }];
-            manifest.display = 'standalone';
+          node -e '
+            const fs = require("fs");
+            const manifest = JSON.parse(fs.readFileSync("twa-manifest.json", "utf8"));
+            manifest.fingerprints = [{ value: process.env.SHA256_FINGERPRINT }];
+            manifest.display = "standalone";
             manifest.enableSiteSettingsShortcut = false;
-            fs.writeFileSync('twa-manifest.json', JSON.stringify(manifest, null, 2));
-          "
+            fs.writeFileSync("twa-manifest.json", JSON.stringify(manifest, null, 2));
+          '
 
       - name: Build Android Package with Bubblewrap
         env:
