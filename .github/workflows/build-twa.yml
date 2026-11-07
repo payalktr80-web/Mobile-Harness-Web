@@ -45,15 +45,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK Environment & Build Tools
+      - name: Setup Android SDK Layout for Bubblewrap
         run: |
           sudo chown -R $USER:$USER /usr/local/lib/android/sdk
-          export PATH="$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/cmdline-tools/16.0/bin:/usr/local/lib/android/sdk/platform-tools"
-          echo "$PATH" >> $GITHUB_PATH
+          CMDLINE_DIR=$(find /usr/local/lib/android/sdk/cmdline-tools/ -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+          echo "Using cmdline-tools at: $CMDLINE_DIR"
+          ln -sfn "$CMDLINE_DIR" /usr/local/lib/android/sdk/tools
+          ln -sfn "$CMDLINE_DIR/bin" /usr/local/lib/android/sdk/bin
+          export PATH="/usr/local/lib/android/sdk/bin:/usr/local/lib/android/sdk/tools/bin:$PATH"
+          echo "PATH=/usr/local/lib/android/sdk/bin:/usr/local/lib/android/sdk/tools/bin:$PATH" >> $GITHUB_ENV
           echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
           echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          yes | sdkmanager --licenses 2>/dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" || true
+          yes | /usr/local/lib/android/sdk/tools/bin/sdkmanager --licenses 2>/dev/null || true
+          /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" || true
 
       - name: Install Project Dependencies & Build Web Assets
         run: |
