@@ -45,6 +45,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools & Platforms
+        run: |
+          yes | sdkmanager --licenses || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
       - name: Install Project Dependencies & Build Web Assets
         run: |
           npm ci || npm install
@@ -56,8 +64,6 @@ jobs:
 
       - name: Preconfigure Bubblewrap Environment
         run: |
-          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
           node -e '
             const fs = require("fs");
             const path = require("path");
@@ -66,10 +72,10 @@ jobs:
             fs.mkdirSync(confDir, { recursive: true });
             fs.writeFileSync(path.join(confDir, "config.json"), JSON.stringify({
               jdkPath: process.env.JAVA_HOME,
-              androidSdkPath: "/usr/local/lib/android/sdk"
+              androidSdkPath: process.env.ANDROID_HOME
             }, null, 2));
           '
-          bubblewrap doctor || true
+          bubblewrap doctor
 
       - name: Setup Keystore & Extract Fingerprint (For Zero URL Bar)
         id: keystore
