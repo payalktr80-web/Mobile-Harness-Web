@@ -14,29 +14,87 @@
     <link rel="apple-touch-icon" href="/assets/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- Google Fonts for Roboto / JetBrains Mono styling -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-    <!-- Pyodide CDN for real Python 3 and micropip package installer in the browser -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+    <style>
+      /* Prevent layout shifts & style initial fallback */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #0B0E14;
+        color: #E6EDF3;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+        overflow: hidden;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+      }
+      .initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
+        text-align: center;
+      }
+      .initial-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background-color: #F28C52;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(242, 140, 82, 0.4);
+      }
+      .initial-spinner {
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(242, 140, 82, 0.2);
+        border-top-color: #F28C52;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="initial-loader">
+        <div class="initial-logo">
+          <svg width="32" height="32" viewBox="0 0 108 108" fill="none">
+            <path fill="#0B0E14" d="m39 43-10 10 10 10 5-5-5-5 5-5Zm17 0-5 5 5 5-5 5 5 5 10-10Z"/>
+          </svg>
+        </div>
+        <div style="font-size: 19px; font-weight: 800; color: #F28C52; letter-spacing: -0.3px;">
+          Mobile Harness
+        </div>
+        <div class="initial-spinner"></div>
+        <div style="font-size: 13px; color: #9AA0A6;">
+          Initializing autonomous workspace...
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
+
     <script>
-      // Register PWA service worker
+      // Clean up any stale service workers from prior failed sessions
       if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            // Keep active or update
+            registration.update();
+          }
+        });
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(
-            (reg) => {
-              console.log('Mobile Harness PWA ServiceWorker registered:', reg.scope);
-            },
-            (err) => {
-              console.log('Mobile Harness ServiceWorker registration error:', err);
-            }
-          );
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('SW registration note:', err);
+          });
         });
       }
     </script>
