@@ -2,14 +2,10 @@ name: Build Android TWA APK with Bubblewrap & Release
 
 on:
   push:
-    tags:
-      - 'v*'
     branches:
       - main
-    paths:
-      - 'twa-manifest.json'
-      - 'public/**'
-      - '.github/workflows/build-twa.yml'
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
@@ -36,7 +32,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
