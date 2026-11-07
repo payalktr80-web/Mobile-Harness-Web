@@ -133,7 +133,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'mobileharness123' }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'mobileharness123' }}
         run: |
-          bubblewrap update --manifest=twa-manifest.json --skipPwaValidation
+          bubblewrap update --manifest=twa-manifest.json --skipVersionUpgrade --skipPwaValidation
           bubblewrap build --skipPwaValidation
 
       - name: Prepare Release Artifacts
