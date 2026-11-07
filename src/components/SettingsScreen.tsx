@@ -3,15 +3,16 @@ import {
   Key,
   Eye,
   EyeOff,
-  CheckCircle2,
-  AlertCircle,
   Cpu,
   Package,
-  Layers,
   Palette,
   ShieldCheck,
   RefreshCw,
   Plus,
+  Globe,
+  Database,
+  Download,
+  Upload,
 } from 'lucide-react';
 import {
   ProviderProfile,
@@ -22,7 +23,7 @@ import {
 } from '../types/models';
 import { AppThemeMode } from '../theme/colors';
 import { installPipPackage } from '../services/pyodideRunner';
-import { loadInstalledPackages, saveInstalledPackages } from '../services/storage';
+import { loadInstalledPackages, saveInstalledPackages, loadProjects, saveProjects } from '../services/storage';
 
 interface SettingsScreenProps {
   provider: ProviderProfile;
@@ -50,8 +51,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const [newPackageName, setNewPackageName] = useState('');
   const [isInstallingPackage, setIsInstallingPackage] = useState(false);
   const [packageInstallMsg, setPackageInstallMsg] = useState('');
-
-  const currentDef = PROVIDER_DEFINITIONS[provider.kind] || PROVIDER_DEFINITIONS.ANTHROPIC;
+  const [language, setLanguage] = useState('English');
+  const [backupStatus, setBackupStatus] = useState<string | null>(null);
 
   const handleProviderChange = (kind: ProviderKindId) => {
     const def = PROVIDER_DEFINITIONS[kind];
@@ -129,6 +130,42 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     setIsInstallingPackage(false);
     setNewPackageName('');
     setInstalledPackages(loadInstalledPackages());
+  };
+
+  const handleExportBackup = () => {
+    const projects = loadProjects();
+    const data = {
+      version: '1.0.3',
+      timestamp: Date.now(),
+      projects,
+      provider: { ...provider, apiKey: '' }, // don't export plain secret
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mobile-harness-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setBackupStatus('Backup exported successfully.');
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string);
+        if (Array.isArray(parsed.projects)) {
+          saveProjects(parsed.projects);
+          setBackupStatus(`Restored ${parsed.projects.length} projects successfully. Refreshing...`);
+          setTimeout(() => window.location.reload(), 1200);
+        }
+      } catch (err) {
+        setBackupStatus('Failed to parse backup file.');
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -351,7 +388,29 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
       </div>
 
-      {/* Theme Setting */}
+      {/* Language */}
+      <div className="surface-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15 }}>
+          <Globe size={18} color="var(--secondary)" />
+          <span>Language / Locale</span>
+        </div>
+        <select
+          className="text-input"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={{ fontWeight: 600 }}
+        >
+          <option value="English">English</option>
+          <option value="Spanish">Español</option>
+          <option value="Arabic">العربية</option>
+          <option value="Greek">Ελληνικά</option>
+          <option value="Hindi">हिन्दी</option>
+          <option value="Russian">Русский</option>
+          <option value="Chinese">中文</option>
+        </select>
+      </div>
+
+      {/* Appearance */}
       <div className="surface-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15 }}>
           <Palette size={18} color="var(--primary)" />
@@ -370,6 +429,35 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Backup and Restore */}
+      <div className="surface-card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 15 }}>
+          <Database size={18} color="var(--primary)" />
+          <span>Backup & Restore</span>
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+          Export your projects, file workspaces, and configurations to JSON, or restore from a backup file.
+        </p>
+
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn-outlined" onClick={handleExportBackup} style={{ flex: 1 }}>
+            <Download size={15} />
+            <span>Export Backup</span>
+          </button>
+          <label className="btn-outlined" style={{ flex: 1, cursor: 'pointer', margin: 0 }}>
+            <Upload size={15} />
+            <span>Restore Backup</span>
+            <input type="file" accept=".json" onChange={handleImportBackup} style={{ display: 'none' }} />
+          </label>
+        </div>
+
+        {backupStatus && (
+          <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600 }}>
+            {backupStatus}
+          </div>
+        )}
       </div>
 
       {/* System Diagnostics */}
