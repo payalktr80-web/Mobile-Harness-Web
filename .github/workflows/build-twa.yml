@@ -137,8 +137,17 @@ jobs:
             manifest.fingerprints = [{ value: process.env.SHA256_FINGERPRINT }];
             manifest.display = "standalone";
             manifest.enableSiteSettingsShortcut = false;
+            manifest.minSdkVersion = 24;
             fs.writeFileSync("twa-manifest.json", JSON.stringify(manifest, null, 2));
           '
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git status --porcelain | grep -q -E "android.keystore|public/.well-known/assetlinks.json"; then
+            git add android.keystore public/.well-known/assetlinks.json || true
+            git commit -m "chore: persist release signing keystore and assetlinks [skip ci]" || true
+            git push origin HEAD:main || true
+          fi
 
       - name: Build Android Package with Bubblewrap
         env:
@@ -165,10 +174,16 @@ jobs:
           if [ -f "app-release-signed.apk" ]; then
             cp app-release-signed.apk "MobileHarness-v${VERSION}-signed.apk"
             echo "apk=MobileHarness-v${VERSION}-signed.apk" >> $GITHUB_OUTPUT
+          elif [ -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
+            cp app/build/outputs/apk/release/app-release-signed.apk "MobileHarness-v${VERSION}-signed.apk"
+            echo "apk=MobileHarness-v${VERSION}-signed.apk" >> $GITHUB_OUTPUT
           fi
 
           if [ -f "app-release-bundle.aab" ]; then
             cp app-release-bundle.aab "MobileHarness-v${VERSION}-bundle.aab"
+            echo "aab=MobileHarness-v${VERSION}-bundle.aab" >> $GITHUB_OUTPUT
+          elif [ -f "app/build/outputs/bundle/release/app-release-bundle.aab" ]; then
+            cp app/build/outputs/bundle/release/app-release-bundle.aab "MobileHarness-v${VERSION}-bundle.aab"
             echo "aab=MobileHarness-v${VERSION}-bundle.aab" >> $GITHUB_OUTPUT
           fi
 
