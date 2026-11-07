@@ -137,7 +137,12 @@ jobs:
             const manifest = JSON.parse(fs.readFileSync("twa-manifest.json", "utf8"));
             manifest.fingerprints = [{ value: process.env.SHA256_FINGERPRINT }];
             manifest.display = "standalone";
-            manifest.enableSiteSettingsShortcut = false;
+            manifest.enableSiteSettingsShortcut = true;
+            manifest.fallbackType = "webview";
+            manifest.features = {
+              locationDelegation: { enabled: false },
+              playBilling: { enabled: false }
+            };
             manifest.minSdkVersion = 24;
             fs.writeFileSync("twa-manifest.json", JSON.stringify(manifest, null, 2));
           '
@@ -156,6 +161,9 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'mobileharness123' }}
         run: |
           bubblewrap update --manifest=twa-manifest.json --skipVersionUpgrade --skipPwaValidation
+          if [ -f "app/build.gradle" ]; then
+            sed -i 's/minifyEnabled true/minifyEnabled false/g' app/build.gradle
+          fi
           bubblewrap build --skipPwaValidation
 
       - name: Prepare Release Artifacts
@@ -166,7 +174,7 @@ jobs:
             if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
               VERSION="${GITHUB_REF#refs/tags/v}"
             else
-              VERSION="1.0.0"
+              VERSION=$(node -p 'require("./twa-manifest.json").appVersionName || "1.0.1"')
             fi
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
