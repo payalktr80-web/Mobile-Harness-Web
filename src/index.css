@@ -1,0 +1,251 @@
+:root {
+  --primary: #F28C52;
+  --primary-hover: #fa9c68;
+  --on-primary: #241107;
+  --primary-container: #42281D;
+  --on-primary-container: #FFDDCC;
+  --secondary: #8EA8FF;
+  --tertiary: #69D69E;
+  --bg: #0B0E14;
+  --surface: #131821;
+  --surface-variant: #1B222D;
+  --outline: #2A3240;
+  --outline-variant: #333B4A;
+  --text: #E6EDF3;
+  --text-muted: #9AA0A6;
+  --error: #FF6B6B;
+  --error-container: #4D1F1F;
+}
+
+[data-theme="light"] {
+  --primary: #D85A20;
+  --primary-hover: #c24d18;
+  --on-primary: #FFFFFF;
+  --primary-container: #FFE0D2;
+  --on-primary-container: #451A08;
+  --secondary: #3366CC;
+  --tertiary: #1B8A5A;
+  --bg: #F6F8FA;
+  --surface: #FFFFFF;
+  --surface-variant: #EAEFF5;
+  --outline: #D0D7DE;
+  --outline-variant: #D8DEE4;
+  --text: #1F2328;
+  --text-muted: #57606A;
+  --error: #CF222E;
+  --error-container: #FFEBE9;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+/* App container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  background-color: var(--bg);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.4);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline-variant);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 600;
+  border-radius: 14px;
+  border: none;
+  padding: 12px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outlined {
+  background-color: transparent;
+  color: var(--text);
+  font-weight: 600;
+  border-radius: 14px;
+  border: 1px solid var(--outline);
+  padding: 12px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-outlined:hover {
+  background-color: var(--surface-variant);
+}
+
+.btn-outlined:active {
+  transform: scale(0.98);
+}
+
+/* Card */
+.surface-card {
+  background-color: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 18px;
+  padding: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.surface-card-subtle {
+  background-color: rgba(27, 34, 45, 0.35);
+  border: 1px solid var(--outline-variant);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+/* Inputs */
+.text-input {
+  width: 100%;
+  background-color: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.text-input:focus {
+  border-color: var(--primary);
+}
+
+/* Chips */
+.chip {
+  background-color: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  background-color: var(--surface-variant);
+}
+
+.chip-active {
+  background-color: rgba(242, 140, 82, 0.16);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Floating Action Button */
+.fab {
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border-radius: 16px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(242, 140, 82, 0.4);
+  z-index: 50;
+  transition: transform 0.15s ease;
+}
+
+.fab:active {
+  transform: scale(0.96);
+}
+
+/* Modal backdrop */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.modal-dialog {
+  background-color: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
