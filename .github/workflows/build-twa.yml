@@ -112,6 +112,7 @@ jobs:
           echo "Extracted SHA-256: $SHA256_FP"
           echo "sha256=$SHA256_FP" >> $GITHUB_OUTPUT
           echo "SHA256_FINGERPRINT=$SHA256_FP" >> $GITHUB_ENV
+          export SHA256_FINGERPRINT="$SHA256_FP"
 
           node -e '
             const fs = require("fs");
