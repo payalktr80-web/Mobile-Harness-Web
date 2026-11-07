@@ -45,13 +45,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android Build Tools & Platforms
+      - name: Setup Android SDK Environment & Build Tools
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          sudo chown -R $USER:$USER /usr/local/lib/android/sdk
+          export PATH="$PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/cmdline-tools/16.0/bin:/usr/local/lib/android/sdk/platform-tools"
+          echo "$PATH" >> $GITHUB_PATH
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          yes | sdkmanager --licenses 2>/dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0" || true
 
       - name: Install Project Dependencies & Build Web Assets
         run: |
@@ -72,7 +74,7 @@ jobs:
             fs.mkdirSync(confDir, { recursive: true });
             fs.writeFileSync(path.join(confDir, "config.json"), JSON.stringify({
               jdkPath: process.env.JAVA_HOME,
-              androidSdkPath: process.env.ANDROID_HOME
+              androidSdkPath: "/usr/local/lib/android/sdk"
             }, null, 2));
           '
           bubblewrap doctor
