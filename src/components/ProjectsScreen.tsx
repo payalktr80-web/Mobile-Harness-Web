@@ -13,8 +13,11 @@ import {
   Edit2,
   Check,
   X,
+  Sparkles,
+  GitBranch,
 } from 'lucide-react';
 import { Project } from '../types/models';
+import { LanguageCode, translate } from '../i18n/i18n';
 
 interface ProjectsScreenProps {
   projects: Project[];
@@ -26,6 +29,7 @@ interface ProjectsScreenProps {
   onDeleteProject: (projectId: string) => void;
   onRenameProject: (projectId: string, newName: string) => void;
   onOpenQuickTerminal: () => void;
+  currentLanguage?: LanguageCode;
 }
 
 export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
@@ -38,11 +42,17 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
   onDeleteProject,
   onRenameProject,
   onOpenQuickTerminal,
+  currentLanguage = 'en',
 }) => {
   const [importExpanded, setImportExpanded] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const t = (k: string, fallback: string) => {
+    const res = translate(k, currentLanguage);
+    return res === k ? fallback : res;
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,16 +61,23 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
     }
   };
 
-  const formatTime = (millis: number) => {
-    const diff = Date.now() - millis;
-    const mins = Math.floor(diff / 60000);
-    const hours = Math.floor(mins / 60);
-    const days = Math.floor(hours / 24);
-    if (mins < 1) return 'Just now';
-    if (mins < 60) return `${mins}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return 'Yesterday';
-    return `${days}d ago`;
+  const startRename = (p: Project, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProjectId(p.id);
+    setEditName(p.name);
+  };
+
+  const confirmRename = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (editName.trim()) {
+      onRenameProject(id, editName.trim());
+    }
+    setEditingProjectId(null);
+  };
+
+  const cancelRename = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProjectId(null);
   };
 
   return (
@@ -68,146 +85,112 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
       style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '20px 18px 90px 18px',
+        padding: '16px',
+        maxWidth: 720,
+        margin: '0 auto',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
       }}
     >
-      <input
-        type="file"
-        ref={fileInputRef}
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
-
-      {/* Hero Header */}
-      <div>
-        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4, letterSpacing: '-0.4px' }}>
-          Projects
-        </h1>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.4 }}>
-          Create, organize, and resume isolated workspace sessions.
-        </p>
-      </div>
-
-      {/* Action Buttons Row */}
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          className="btn-primary"
-          onClick={onCreateQuickProject}
-          style={{ flex: 1, height: 48 }}
-        >
-          <MessageSquare size={17} />
-          <span>Quick Project</span>
-        </button>
-
-        <button
-          className="btn-outlined"
-          onClick={onOpenNewProjectModal}
-          style={{ flex: 1, height: 48 }}
-        >
-          <Plus size={18} />
-          <span>New Project</span>
-        </button>
-      </div>
-
-      {/* Bring Existing Section */}
-      <div className="surface-card-subtle" style={{ padding: 0, overflow: 'hidden' }}>
-        <div
-          onClick={() => setImportExpanded(!importExpanded)}
-          style={{
-            padding: '14px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            cursor: 'pointer',
-          }}
-        >
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>Bring existing project</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-              {importExpanded ? 'Select an import source' : 'ZIP file, Git URL, or connect GitHub'}
+      {/* Quick Project Hero Card */}
+      <div
+        className="surface-card"
+        style={{
+          border: '1.5px solid var(--primary)',
+          backgroundColor: 'rgba(242, 140, 82, 0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                backgroundColor: 'var(--primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+              }}
+            >
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>
+                {t('quick_project', 'Quick Project')}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                {t('quick_project_desc', 'Instant autonomous Python & Claude Code session')}
+              </div>
             </div>
           </div>
-          {importExpanded ? (
-            <ChevronUp size={18} color="var(--text-muted)" />
-          ) : (
-            <ChevronDown size={18} color="var(--text-muted)" />
-          )}
         </div>
 
-        {importExpanded && (
-          <div
-            style={{
-              padding: '0 14px 14px 14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-            }}
-          >
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                className="btn-outlined"
-                onClick={() => fileInputRef.current?.click()}
-                style={{ flex: 1, padding: '10px 12px', fontSize: 12.5 }}
-              >
-                <Download size={15} color="var(--primary)" />
-                <span>Upload ZIP/Files</span>
-              </button>
-
-              <button
-                className="btn-outlined"
-                onClick={onOpenCloneGitModal}
-                style={{ flex: 1, padding: '10px 12px', fontSize: 12.5 }}
-              >
-                <Code size={15} color="var(--primary)" />
-                <span>Git URL</span>
-              </button>
-            </div>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn-primary" onClick={onCreateQuickProject} style={{ flex: 1 }}>
+            <span>{t('launch_quick_project', 'Launch Quick Project')}</span>
+          </button>
+          <button className="btn-outlined" onClick={onOpenQuickTerminal} style={{ flex: 1 }}>
+            <Terminal size={15} />
+            <span>{t('terminal', 'Quick Terminal')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Projects List Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-0.2px' }}>
-          Your projects ({projects.length})
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
+          {t('projects', 'Projects')} ({projects.length})
         </h2>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            className="chip chip-active"
+            onClick={onOpenNewProjectModal}
+            style={{ padding: '6px 12px', fontSize: 12 }}
+          >
+            <Plus size={14} />
+            <span>{t('new_project', 'New Project')}</span>
+          </button>
+          <button
+            className="chip"
+            onClick={onOpenCloneGitModal}
+            style={{ padding: '6px 12px', fontSize: 12 }}
+          >
+            <GitBranch size={14} />
+            <span>{t('clone_git', 'Clone Git')}</span>
+          </button>
+        </div>
       </div>
 
-      {/* Projects List */}
+      {/* Projects Items */}
       {projects.length === 0 ? (
         <div
           className="surface-card"
           style={{
+            textAlign: 'center',
             padding: '36px 20px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: 10,
+            gap: 12,
           }}
         >
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: '50%',
-              backgroundColor: 'rgba(242, 140, 82, 0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 4,
-            }}
-          >
-            <Folder size={26} color="var(--primary)" />
+          <Folder size={40} color="var(--text-muted)" opacity={0.5} />
+          <div style={{ fontSize: 15, fontWeight: 700 }}>
+            {t('no_projects_yet', 'No projects created yet')}
           </div>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>No projects yet</div>
-          <p style={{ fontSize: 12.5, color: 'var(--text-muted)', maxWidth: 280, lineHeight: 1.5 }}>
-            Launch a Quick Project to start chatting with Claude Code, or create a new workspace.
-          </p>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', maxWidth: 300 }}>
+            {t('no_projects_desc', 'Launch a Quick Project or create a new workspace to start coding with AI tools.')}
+          </div>
+          <button className="btn-primary" onClick={onCreateQuickProject} style={{ marginTop: 6 }}>
+            {t('launch_quick_project', 'Launch Quick Project')}
+          </button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -215,101 +198,121 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
             <div
               key={project.id}
               className="surface-card"
+              onClick={() => onOpenProject(project)}
               style={{
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '14px 16px',
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                if (editingProjectId !== project.id) {
-                  onOpenProject(project);
-                }
+                transition: 'border-color 0.15s ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
                 <div
                   style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 12,
-                    backgroundColor: 'rgba(242, 140, 82, 0.12)',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    backgroundColor: 'var(--surface-variant)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    color: 'var(--primary)',
                     flexShrink: 0,
                   }}
                 >
-                  <Folder size={22} color="var(--primary)" />
+                  {project.type === 'ANDROID' ? <Code size={20} /> : <Folder size={20} />}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   {editingProjectId === project.id ? (
                     <div
-                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                       onClick={(e) => e.stopPropagation()}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6 }}
                     >
                       <input
-                        className="text-input"
+                        type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        autoFocus
+                        className="text-input"
                         style={{ padding: '4px 8px', fontSize: 13 }}
                       />
                       <button
-                        onClick={() => {
-                          if (editName.trim()) {
-                            onRenameProject(project.id, editName.trim());
-                          }
-                          setEditingProjectId(null);
+                        onClick={(e) => confirmRename(project.id, e)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#69D69E',
+                          cursor: 'pointer',
                         }}
-                        style={{ background: 'none', border: 'none', color: 'var(--tertiary)', cursor: 'pointer' }}
                       >
-                        <Check size={18} />
+                        <Check size={16} />
                       </button>
                       <button
-                        onClick={() => setEditingProjectId(null)}
-                        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                        onClick={cancelRename}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#FF6B6B',
+                          cursor: 'pointer',
+                        }}
                       >
-                        <X size={18} />
+                        <X size={16} />
                       </button>
                     </div>
                   ) : (
-                    <>
-                      <div
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span
                         style={{
-                          fontWeight: 700,
                           fontSize: 14.5,
-                          whiteSpace: 'nowrap',
+                          fontWeight: 700,
                           textOverflow: 'ellipsis',
                           overflow: 'hidden',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         {project.name}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-muted)' }}>
-                        <span>{formatTime(project.updatedAtMillis)}</span>
-                        <span>•</span>
-                        <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{project.language || 'Python'}</span>
-                        <span>•</span>
-                        <span>{Object.keys(project.files || {}).length} files</span>
-                      </div>
-                    </>
+                      </span>
+                      {project.kind === 'QUICK_PROJECT' && (
+                        <span
+                          style={{
+                            fontSize: 9.5,
+                            fontWeight: 800,
+                            backgroundColor: 'rgba(242, 140, 82, 0.15)',
+                            color: 'var(--primary)',
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                          }}
+                        >
+                          QUICK
+                        </span>
+                      )}
+                    </div>
                   )}
+
+                  <span
+                    style={{
+                      fontSize: 12,
+                      color: 'var(--text-muted)',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      marginTop: 2,
+                    }}
+                  >
+                    {project.description || `${project.language} • ${Object.keys(project.files).length} files`}
+                  </span>
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: 4 }}
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
-                  onClick={() => {
-                    setEditingProjectId(project.id);
-                    setEditName(project.name);
-                  }}
+                  onClick={(e) => startRename(project, e)}
+                  title="Rename"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -318,16 +321,17 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     padding: 6,
                     borderRadius: 6,
                   }}
-                  title="Rename"
                 >
-                  <Edit2 size={16} />
+                  <Edit2 size={15} />
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     if (confirm(`Delete project "${project.name}"?`)) {
                       onDeleteProject(project.id);
                     }
                   }}
+                  title="Delete"
                   style={{
                     background: 'none',
                     border: 'none',
@@ -336,9 +340,8 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     padding: 6,
                     borderRadius: 6,
                   }}
-                  title="Delete"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>
@@ -346,11 +349,46 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
         </div>
       )}
 
-      {/* Floating Action Button */}
-      <button className="fab" onClick={onOpenQuickTerminal} title="Open Quick Terminal">
-        <Terminal size={18} />
-        <span>Terminal</span>
-      </button>
+      {/* Import / Zip Section Accordion */}
+      <div className="surface-card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div
+          onClick={() => setImportExpanded(!importExpanded)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, fontWeight: 700 }}>
+            <Download size={16} color="var(--primary)" />
+            <span>{t('import_project', 'Import ZIP Project')}</span>
+          </div>
+          {importExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+
+        {importExpanded && (
+          <div style={{ paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
+              {t('import_project_desc', 'Import an existing project archive into Mobile Harness browser storage.')}
+            </p>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".zip,.tar.gz"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <button
+              className="btn-outlined"
+              onClick={() => fileInputRef.current?.click()}
+              style={{ alignSelf: 'flex-start' }}
+            >
+              <span>{t('choose_file', 'Select ZIP Archive')}</span>
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

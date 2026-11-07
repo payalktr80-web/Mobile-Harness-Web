@@ -7,6 +7,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { NewProjectModal } from './components/NewProjectModal';
 import { CloneGitModal } from './components/CloneGitModal';
 import { QuickTerminalModal } from './components/QuickTerminalModal';
+import { GuidedSetupWizard } from './components/setup/GuidedSetupWizard';
 import {
   Project,
   ProjectFile,
@@ -27,6 +28,9 @@ import {
   projectSlug,
 } from './services/storage';
 import { AppThemeMode } from './theme/colors';
+import { getStoredLanguage, saveStoredLanguage, LanguageCode, translate } from './i18n/i18n';
+
+const STORAGE_ONBOARDING_KEY = 'mh_onboarding_v1';
 
 export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(() => loadProjects());
@@ -36,6 +40,12 @@ export const App: React.FC = () => {
   const [provider, setProvider] = useState<ProviderProfile>(() => loadProvider());
   const [selectedAgent, setSelectedAgent] = useState<AgentKind>(() => loadAgent());
   const [themeMode, setThemeMode] = useState<AppThemeMode>(() => loadTheme());
+  const [language, setLanguage] = useState<LanguageCode>(() => getStoredLanguage());
+
+  // Show guided setup wizard if not completed before
+  const [showSetupWizard, setShowSetupWizard] = useState<boolean>(() => {
+    return !localStorage.getItem(STORAGE_ONBOARDING_KEY);
+  });
 
   // Modals
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
@@ -67,6 +77,21 @@ export const App: React.FC = () => {
 
   const handleToggleTheme = () => {
     setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleLanguageChange = (newLang: LanguageCode) => {
+    setLanguage(newLang);
+    saveStoredLanguage(newLang);
+  };
+
+  const handleCompleteSetup = () => {
+    localStorage.setItem(STORAGE_ONBOARDING_KEY, 'true');
+    setShowSetupWizard(false);
+  };
+
+  const handleSkipSetup = () => {
+    localStorage.setItem(STORAGE_ONBOARDING_KEY, 'true');
+    setShowSetupWizard(false);
   };
 
   const handleOpenProject = (project: Project) => {
@@ -250,7 +275,6 @@ if __name__ == "__main__":
     const repoName = url.split('/').pop()?.replace('.git', '') || 'git-repo';
     const slug = projectSlug(repoName);
 
-    // Mock initial clone files
     const newProject: Project = {
       id: `proj_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: repoName,
@@ -336,6 +360,20 @@ if __name__ == "__main__":
 
   return (
     <div className="app-container">
+      {/* Guided Setup / Bootstrap Wizard */}
+      {showSetupWizard && (
+        <GuidedSetupWizard
+          currentLanguage={language}
+          onLanguageChange={handleLanguageChange}
+          currentProvider={provider}
+          onProviderChange={setProvider}
+          currentAgent={selectedAgent}
+          onAgentChange={setSelectedAgent}
+          onComplete={handleCompleteSetup}
+          onSkip={handleSkipSetup}
+        />
+      )}
+
       {/* Top App Bar */}
       <TopBar
         activeProject={activeProject}
@@ -343,6 +381,7 @@ if __name__ == "__main__":
         themeMode={themeMode}
         onToggleTheme={handleToggleTheme}
         onRunProjectPreview={() => setWorkspaceTab('preview')}
+        currentLanguage={language}
       />
 
       {/* Main Body */}
@@ -369,6 +408,7 @@ if __name__ == "__main__":
                 onDeleteProject={handleDeleteProject}
                 onRenameProject={handleRenameProject}
                 onOpenQuickTerminal={() => setIsQuickTerminalOpen(true)}
+                currentLanguage={language}
               />
             )}
 
@@ -423,6 +463,9 @@ if __name__ == "__main__":
                 onSelectAgent={setSelectedAgent}
                 themeMode={themeMode}
                 onSetThemeMode={setThemeMode}
+                currentLanguage={language}
+                onLanguageChange={handleLanguageChange}
+                onReRunSetupWizard={() => setShowSetupWizard(true)}
               />
             )}
           </>
@@ -436,6 +479,7 @@ if __name__ == "__main__":
         onSelectRootTab={setRootTab}
         activeWorkspaceTab={workspaceTab}
         onSelectWorkspaceTab={setWorkspaceTab}
+        currentLanguage={language}
       />
 
       {/* Modals */}

@@ -214,3 +214,13 @@ export interface InstalledPythonPackage {
   version: string;
   summary?: string;
 }
+
+export interface WorkspaceEntry {
+  path: string;
+  name: string;
+  isDirectory: boolean;
+  depth: number;
+  sizeBytes?: number;
+  childCount?: number;
+  isExpanded?: boolean;
+}

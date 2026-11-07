@@ -1,5 +1,6 @@
 import React from 'react';
 import { Folder, Bot, Settings, Sparkles, Terminal, GitCompare, Eye } from 'lucide-react';
+import { LanguageCode, translate } from '../i18n/i18n';
 
 export type RootTab = 'projects' | 'agent' | 'settings';
 export type WorkspaceTab = 'chat' | 'files' | 'terminal' | 'changes' | 'preview';
@@ -11,6 +12,7 @@ interface BottomNavBarProps {
   activeWorkspaceTab: WorkspaceTab;
   onSelectWorkspaceTab: (tab: WorkspaceTab) => void;
   changesCount?: number;
+  currentLanguage?: LanguageCode;
 }
 
 export const BottomNavBar: React.FC<BottomNavBarProps> = ({
@@ -20,14 +22,20 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
   activeWorkspaceTab,
   onSelectWorkspaceTab,
   changesCount = 0,
+  currentLanguage = 'en',
 }) => {
+  const t = (k: string, fallback: string) => {
+    const res = translate(k, currentLanguage);
+    return res === k ? fallback : res;
+  };
+
   if (inWorkspace) {
     const tabs: Array<{ id: WorkspaceTab; label: string; icon: React.FC<{ size?: number }> }> = [
-      { id: 'chat', label: 'Chat', icon: Sparkles },
-      { id: 'files', label: 'Files', icon: Folder },
-      { id: 'terminal', label: 'Terminal', icon: Terminal },
-      { id: 'changes', label: 'Changes', icon: GitCompare },
-      { id: 'preview', label: 'Preview', icon: Eye },
+      { id: 'chat', label: t('tab_chat', 'Chat'), icon: Sparkles },
+      { id: 'files', label: t('tab_files', 'Files'), icon: Folder },
+      { id: 'terminal', label: t('tab_terminal', 'Terminal'), icon: Terminal },
+      { id: 'changes', label: t('tab_changes', 'Changes'), icon: GitCompare },
+      { id: 'preview', label: t('tab_preview', 'Preview'), icon: Eye },
     ];
 
     return (
@@ -59,48 +67,33 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
                 gap: 4,
                 cursor: 'pointer',
                 flex: 1,
-                padding: '6px 0',
+                padding: '8px 0',
+                color: selected ? 'var(--primary)' : 'var(--text-muted)',
                 position: 'relative',
               }}
             >
-              <div
-                style={{
-                  padding: '4px 16px',
-                  borderRadius: 16,
-                  backgroundColor: selected ? 'rgba(242, 140, 82, 0.16)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'background-color 0.2s ease',
-                }}
-              >
-                <IconComponent size={20} color={selected ? 'var(--primary)' : 'var(--text-muted)'} />
+              <div style={{ position: 'relative' }}>
+                <IconComponent size={20} />
                 {tab.id === 'changes' && changesCount > 0 && (
                   <span
                     style={{
                       position: 'absolute',
-                      top: 4,
-                      right: '30%',
+                      top: -4,
+                      right: -8,
                       backgroundColor: 'var(--primary)',
-                      color: 'var(--on-primary)',
+                      color: '#FFFFFF',
                       fontSize: 10,
                       fontWeight: 700,
                       borderRadius: 10,
                       padding: '1px 5px',
+                      lineHeight: 1,
                     }}
                   >
                     {changesCount}
                   </span>
                 )}
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: selected ? 600 : 500,
-                  color: selected ? 'var(--primary)' : 'var(--text-muted)',
-                  letterSpacing: '0.2px',
-                }}
-              >
+              <span style={{ fontSize: 11, fontWeight: selected ? 700 : 500 }}>
                 {tab.label}
               </span>
             </button>
@@ -112,9 +105,9 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
 
   // Root Navigation
   const rootTabs: Array<{ id: RootTab; label: string; icon: React.FC<{ size?: number }> }> = [
-    { id: 'projects', label: 'Projects', icon: Folder },
-    { id: 'agent', label: 'Agent', icon: Bot },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'projects', label: t('tab_projects', 'Projects'), icon: Folder },
+    { id: 'agent', label: t('tab_agent', 'Claude Code'), icon: Sparkles },
+    { id: 'settings', label: t('tab_settings', 'Settings'), icon: Settings },
   ];
 
   return (
@@ -146,29 +139,12 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
               gap: 4,
               cursor: 'pointer',
               flex: 1,
-              padding: '6px 0',
+              padding: '8px 0',
+              color: selected ? 'var(--primary)' : 'var(--text-muted)',
             }}
           >
-            <div
-              style={{
-                padding: '4px 20px',
-                borderRadius: 16,
-                backgroundColor: selected ? 'rgba(242, 140, 82, 0.16)' : 'transparent',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'background-color 0.2s ease',
-              }}
-            >
-              <IconComponent size={22} color={selected ? 'var(--primary)' : 'var(--text-muted)'} />
-            </div>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: selected ? 600 : 500,
-                color: selected ? 'var(--primary)' : 'var(--text-muted)',
-              }}
-            >
+            <IconComponent size={20} />
+            <span style={{ fontSize: 11, fontWeight: selected ? 700 : 500 }}>
               {tab.label}
             </span>
           </button>
