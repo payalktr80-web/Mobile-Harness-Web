@@ -1,0 +1,46 @@
+{
+  "packageId": "io.github.payalktr80_web.mobile_harness",
+  "host": "payalktr80-web.github.io",
+  "name": "Mobile Harness",
+  "launcherName": "MobileHarness",
+  "display": "standalone",
+  "themeColor": "#0B0E14",
+  "themeColorDark": "#0B0E14",
+  "navigationColor": "#0B0E14",
+  "navigationColorDark": "#0B0E14",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "backgroundColor": "#0B0E14",
+  "enableNotifications": true,
+  "startUrl": "/Mobile-Harness-Web/",
+  "iconUrl": "https://payalktr80-web.github.io/Mobile-Harness-Web/assets/icon-512.png",
+  "maskableIconUrl": "https://payalktr80-web.github.io/Mobile-Harness-Web/assets/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://payalktr80-web.github.io/Mobile-Harness-Web/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": false,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "fingerprints": []
+}
